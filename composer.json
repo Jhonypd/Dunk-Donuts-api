@@ -53,6 +53,10 @@
             "Composer\\Config::disableProcessTimeout",
             "php -S 0.0.0.0:8080 -t public"
         ],
+        "serve-debug": [
+            "Composer\\Config::disableProcessTimeout",
+            "php -d xdebug.mode=debug -d xdebug.start_with_request=yes -S 0.0.0.0:8080 -t public"
+        ],
         "test": "vendor/bin/phpunit",
         "static-analysis": "vendor/bin/psalm --stats"
     },
