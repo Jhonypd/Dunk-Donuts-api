@@ -1,0 +1,19 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "composer: serve",
+      "type": "process",
+      "command": "C:\\PHP\\php.exe",
+      "args": [
+        "${env:APPDATA}\\Composer\\latest.phar",
+        "run-script",
+        "serve"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "problemMatcher": []
+    }
+  ]
+}
