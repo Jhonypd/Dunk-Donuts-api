@@ -9,7 +9,5 @@ return [
     'Laminas\Db',
     'Laminas\Router',
     'Laminas\Validator',
-    'Laminas\View',
-    'Laminas\Mvc',
     'Application',
 ];
