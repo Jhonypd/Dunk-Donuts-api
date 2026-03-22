@@ -49,4 +49,15 @@ return [
             ],
         ],
     ],
+    'produtos-obter-por-id' => [
+        'type' => Literal::class,
+        'options' => [
+            'route' => '/produtos/produto',
+            'defaults' => [
+                'controller' => \Application\Controller\ProdutoController::class,
+                'action' => 'obterPorId',
+                'allowed_methods' => ['GET'],
+            ],
+        ],
+    ],
 ];

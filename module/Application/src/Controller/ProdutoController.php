@@ -81,4 +81,18 @@ class ProdutoController extends BaseController
             'resultado' => null,
         ];
     }
+
+    public function obterPorIdAction()
+    {
+        $request = $this->validateRequest('GET');
+        $id = $this->getQueryParam($request, 'id', true);
+
+        $produto = $this->service->obterPorId((int)$id);
+
+        return [
+            'success' => true,
+            'codigoHttp' => 200,
+            'resultado' => $produto,
+        ];
+    }
 }

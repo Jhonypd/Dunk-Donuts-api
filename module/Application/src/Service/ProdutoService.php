@@ -7,6 +7,7 @@ namespace Application\Service;
 use Application\DTO\ProdutoAlterarDTO;
 use Application\DTO\ProdutoDeleteDTO;
 use Application\DTO\ProdutoDTO;
+use Application\Enum\CategoriaProdutos;
 use Application\Repository\ProdutoRepository;
 
 class ProdutoService
@@ -78,6 +79,11 @@ class ProdutoService
         }
 
         $inativo = (bool) $dados->inativo;
+        $valorCategoria = trim((string) ($dados->categoria ?? ''));
+
+        $categoria = CategoriaProdutos::tryFrom($valorCategoria)
+            ?? CategoriaProdutos::NORMAIS;
+
 
         $produto = new ProdutoDTO(
             nome: $nome,
@@ -85,6 +91,7 @@ class ProdutoService
             descricao: $dados->descricao,
             referencia: $referencia,
             inativo: $inativo,
+            categoria: $categoria,
         );
 
         $this->repository->inserir($produto);
@@ -137,10 +144,17 @@ class ProdutoService
 
         $inativo = (bool) $dados->inativo;
 
+        $valorCategoria = trim((string) ($dados->categoria ?? ''));
+
+        $categoria = CategoriaProdutos::tryFrom($valorCategoria)
+            ?? CategoriaProdutos::NORMAIS;
+
+
         $produto = new ProdutoAlterarDTO(
             id: $dados->id,
             nome: $nome,
             preco: $preco,
+            categoria: $categoria,
             descricao: $dados->descricao,
             referencia: $referencia,
             inativo: $inativo,
@@ -187,6 +201,17 @@ class ProdutoService
         return [
             'mensagem' => 'Produtos deletados com sucesso.'
         ];
+    }
+
+    public function obterPorId(int $id): ?array
+    {
+        $produto = $this->repository->buscarPorId($id);
+
+        if (empty($produto)) {
+            throw new \InvalidArgumentException('Produto não encontrado.');
+        }
+
+        return $produto;
     }
 
     private function getTextLength(string $texto): int

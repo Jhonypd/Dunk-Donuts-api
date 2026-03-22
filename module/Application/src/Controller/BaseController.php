@@ -119,4 +119,31 @@ abstract class BaseController extends AbstractActionController
             array_filter(explode(',', $value))
         );
     }
+
+    /**
+     * Retorna um parâmetro da query string (?id=1).
+     *
+     * @param Request $request
+     * @param string $name Nome do parâmetro
+     * @param bool $required Se é obrigatório
+     * @param mixed $default Valor padrão
+     * @return string|null
+     *
+     * @throws \InvalidArgumentException Se obrigatório e não informado
+     */
+
+    protected function getQueryParam(
+        Request $request,
+        string $name,
+        bool $required = false,
+        mixed $default = null
+    ): mixed {
+        $value = $request->getQuery($name, $default);
+
+        if ($required && ($value === null || $value === '')) {
+            throw new \InvalidArgumentException("Parâmetro '{$name}' não informado.");
+        }
+
+        return $value;
+    }
 }
