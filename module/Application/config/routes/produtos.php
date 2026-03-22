@@ -38,4 +38,15 @@ return [
             ],
         ],
     ],
+    'produtos-deletar' => [
+        'type' => Literal::class,
+        'options' => [
+            'route' => '/produtos/deletar',
+            'defaults' => [
+                'controller' => \Application\Controller\ProdutoController::class,
+                'action' => 'deletar',
+                'allowed_methods' => ['DELETE'],
+            ],
+        ],
+    ],
 ];

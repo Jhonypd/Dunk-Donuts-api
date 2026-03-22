@@ -3,7 +3,7 @@
 namespace Application\Repository;
 
 use Application\DTO\ProdutoAlterarDTO;
-use Application\DTO\ProdutoDeletarDTO;
+use Application\DTO\ProdutoDeleteDTO;
 use Application\DTO\ProdutoDTO;
 use Laminas\Db\Adapter\Adapter;
 
@@ -64,7 +64,7 @@ class ProdutoRepository
         );
     }
 
-    public function deletar(ProdutoDeletarDTO $ids): void
+    public function deletar(ProdutoDeleteDTO $ids): void
     {
         if (empty($ids->ids)) {
             return;

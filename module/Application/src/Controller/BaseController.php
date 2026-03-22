@@ -110,7 +110,7 @@ abstract class BaseController extends AbstractActionController
      * @param string $headerName
      * @return int[]
      */
-    protected function getIdsFromHeader(Request $request, string $headerName = 'X-Ids'): array
+    protected function getIdsFromHeader(Request $request, string $headerName = 'Ids'): array
     {
         $value = $this->getHeader($request, $headerName, true);
 

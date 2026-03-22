@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Application\Service;
 
 use Application\DTO\ProdutoAlterarDTO;
-use Application\DTO\ProdutoDeletarDTO;
+use Application\DTO\ProdutoDeleteDTO;
 use Application\DTO\ProdutoDTO;
 use Application\Repository\ProdutoRepository;
 
@@ -25,8 +25,12 @@ class ProdutoService
 
     public function listar(bool $incluirInativos = false): array
     {
+
+
+        $produtos = $this->repository->buscarTodos($incluirInativos);
+
         return [
-            'produtos' => $this->repository->buscarTodos($incluirInativos),
+            'produtos' => $produtos,
         ];
     }
 
@@ -145,26 +149,43 @@ class ProdutoService
         $this->repository->alterar($produto);
     }
 
-    public function deletar(ProdutoDeletarDTO $ids): array
+    public function deletar(ProdutoDeleteDTO $ids): array
     {
-
-        $countIdsInexistentes = 0;
-
         if (empty($ids->ids)) {
             return [
                 'mensagem' => 'Não foi possível deletar os produtos, verifique as informações e tente novamente.'
             ];
         }
 
+        $total = count($ids->ids);
+        $existentes = 0;
 
         foreach ($ids->ids as $id) {
-            $this->repository->buscarPorId($id) ?? $countIdsInexistentes++;
+            if ($this->repository->buscarPorId($id)) {
+                $existentes++;
+            }
         }
 
+        // falha total
+        if ($existentes === 0) {
+            return [
+                'mensagem' => 'Nenhum dos produtos informados foram encontrados para deletar.'
+            ];
+        }
+
+        // deleta os que existem
         $this->repository->deletar($ids);
 
+        // parcial
+        if ($existentes < $total) {
+            return [
+                'mensagem' => 'Não foi possível deletar todos os produtos.'
+            ];
+        }
+
+        // sucesso total
         return [
-            'mensagem' => ($countIdsInexistentes > 0 ? "Não foi possível deletar todos os produtos." : 'Produtos deletados com sucesso.'),
+            'mensagem' => 'Produtos deletados com sucesso.'
         ];
     }
 

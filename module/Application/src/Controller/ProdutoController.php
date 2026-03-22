@@ -6,10 +6,8 @@ namespace Application\Controller;
 
 use Application\DTO\ProdutoDTO;
 use Application\DTO\ProdutoAlterarDTO;
-use Application\DTO\ProdutoDeletarDTO;
+use Application\DTO\ProdutoDeleteDTO;
 use Application\Service\ProdutoService;
-use Application\Controller\BaseController;
-use Laminas\Http\Request;
 
 
 class ProdutoController extends BaseController
@@ -24,66 +22,27 @@ class ProdutoController extends BaseController
     public function listarAction()
     {
         $request = $this->validateRequest('GET');
-        $dados = $this->getHeader($request, required: true, name: 'incluirInativos');
+        $header = $this->getHeader($request, 'incluirInativos', true);
+        $incluirInativos = (bool) $header;
 
+        $produtos = $this->service->listar($incluirInativos);
 
         return [
             'success' => true,
-            'resultado' => $this->service->listar(incluirInativos: filter_var($dados['incluirInativos'] ?? false, FILTER_VALIDATE_BOOLEAN)),
+            'resultado' => $produtos,
         ];
     }
     public function criarAction()
     {
         $request = $this->validateRequest('POST');
-
-        if (! $request instanceof Request) {
-            return [
-                'success' => false,
-                'mensagem' => 'Requisição HTTP inválida.',
-                'codigoHttp' => 400,
-            ];
-        }
-
-        if (! $request->isPost()) {
-            return [
-                'success' => false,
-                'mensagem' => 'Método não permitido.',
-                'codigoHttp' => 405,
-            ];
-        }
-
-        $dados = $request->getPost()->toArray();
-
-        $headers = $request->getHeaders();
-        $contentType = $headers->has('Content-Type')
-            ? strtolower((string) $headers->get('Content-Type')->getFieldValue())
-            : '';
-
-        if (str_starts_with($contentType, 'application/json')) {
-            $rawBody = (string) $request->getContent();
-            $decoded = $rawBody !== '' ? json_decode($rawBody, true) : [];
-
-            if ($decoded === null && $rawBody !== '') {
-                return [
-                    'success' => false,
-                    'resultado' => null,
-                    'mensagem' => 'JSON inválido no corpo da requisição.',
-                    'codigoHttp' => 400,
-                ];
-            }
-
-            if (is_array($decoded)) {
-                $dados = array_merge($dados, $decoded);
-            }
-        }
+        $dados = $this->getJsonBody($request);
 
         $produtoDto = ProdutoDTO::fromArray($dados);
         $this->service->criar($produtoDto);
 
-        $nome = $produtoDto->nome;
         return [
             'success' => true,
-            'mensagem' => 'Produto ' . trim($nome) . ' criado com sucesso.',
+            'mensagem' => 'Produto ' . trim($produtoDto->nome) . ' criado com sucesso.',
             'codigoHttp' => 201,
             'resultado' => null,
         ];
@@ -110,14 +69,14 @@ class ProdutoController extends BaseController
     public function deletarAction()
     {
         $request = $this->validateRequest('DELETE');
-        $dados = $this->getIdsFromHeader($request);
+        $ids = $this->getIdsFromHeader($request, "Ids");
 
-        $dto = ProdutoDeletarDTO::fromArray($dados);
-        $this->service->deletar($dto);
+        $dto = ProdutoDeleteDTO::fromArray(['Ids' => $ids]);
+        $resultado = $this->service->deletar($dto);
 
         return [
             'success' => true,
-            'mensagem' => 'Produtos deletados com sucesso.',
+            'mensagem' => $resultado['mensagem'],
             'codigoHttp' => 200,
             'resultado' => null,
         ];

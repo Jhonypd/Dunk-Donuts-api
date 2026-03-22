@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Application\DTO;
 
-final class ProdutoDeletarDTO
+final class ProdutoDeleteDTO
 {
     /**
      * @param int[] $ids
@@ -16,10 +16,10 @@ final class ProdutoDeletarDTO
 
     public static function fromArray(array $data): self
     {
-        $ids = $data['ids'] ?? [];
+        $ids = $data['Ids'] ?? [];
 
         if (!is_array($ids)) {
-            throw new \InvalidArgumentException('O campo "ids" deve ser uma lista de números inteiros.');
+            throw new \InvalidArgumentException('O campo "Ids" deve ser uma lista de números inteiros.');
         }
 
         $ids = array_map(function ($id) {
