@@ -32,12 +32,12 @@ $db->exec("
         data_entrega DATE NOT NULL,
         hora_entrega TIME NOT NULL,
 
-        tipo_entrega TEXT NOT NULL, -- retirada | entrega
+        tipo_entrega INTEGER NOT NULL DEFAULT 0,
         endereco TEXT NULL,
 
-        forma_pagamento TEXT NOT NULL,
+        forma_pagamento INTEGER NOT NULL,
 
-        status TEXT NOT NULL DEFAULT 'pendente',
+        status INTEGER NOT NULL DEFAULT 0,
 
         observacao TEXT NULL,
         valor_total REAL NOT NULL DEFAULT 0.00,

@@ -42,7 +42,7 @@ class ProdutoController extends BaseController
 
         return [
             'success' => true,
-            'mensagem' => 'Produto ' . trim($produtoDto->nome) . ' criado com sucesso.',
+            'mensagem' => 'Produto criado com sucesso.',
             'codigoHttp' => 201,
             'resultado' => null,
         ];
@@ -57,10 +57,9 @@ class ProdutoController extends BaseController
         $dto = ProdutoAlterarDTO::fromArray($dados);
         $this->service->alterar($dto);
 
-        $nome = $dto->nome;
         return [
             'success' => true,
-            'mensagem' => 'Produto ' . trim($nome) . ' alterado com sucesso.',
+            'mensagem' => 'Produto alterado com sucesso.',
             'codigoHttp' => 200,
             'resultado' => null,
         ];

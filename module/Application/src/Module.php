@@ -10,6 +10,7 @@ use Laminas\Mvc\MvcEvent;
 use Laminas\Uri\Http as HttpUri;
 use Application\Listener\ApiMethodGuardListener;
 use Application\Listener\ApiResponseListener;
+use Application\Listener\CorsListener;
 
 class Module
 {
@@ -21,6 +22,13 @@ class Module
     public function onBootstrap(MvcEvent $e): void
     {
         $eventManager = $e->getApplication()->getEventManager();
+        $container = $e->getApplication()->getServiceManager();
+        $config = $container->get('config')['cors'] ?? [];
+        $allowedOrigins = $config['allowed_origins'] ?? [];
+
+        // Configura CORS na resposta ANTES de tudo
+        // Roda no evento FINISH com prioridade alta para estar presente em todas as respostas
+        $eventManager->attach(MvcEvent::EVENT_FINISH, new CorsListener($allowedOrigins), 1000);
 
         // Prioridade alta para garantir JSON em erros/404 antes do View renderizar templates.
         $eventManager->attach(MvcEvent::EVENT_DISPATCH_ERROR, [$this, 'renderApiError'], 1000);

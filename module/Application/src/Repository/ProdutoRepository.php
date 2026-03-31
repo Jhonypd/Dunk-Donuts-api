@@ -35,10 +35,11 @@ class ProdutoRepository
     public function inserir(ProdutoDTO $produto): void
     {
         $this->db->query(
-            "INSERT INTO produtos (nome, preco, descricao, referencia, inativo)
-         VALUES (:nome, :preco, :descricao, :referencia, :inativo)",
+            "INSERT INTO produtos (nome, categoria, preco, descricao, referencia, inativo)
+         VALUES (:nome, :categoria, :preco, :descricao, :referencia, :inativo)",
             [
                 'nome' => $produto->nome,
+                'categoria' => $produto->categoria->value,
                 'preco' => $produto->preco,
                 'descricao' => $produto->descricao,
                 'referencia' => $produto->referencia,
@@ -49,19 +50,49 @@ class ProdutoRepository
 
     public function alterar(ProdutoAlterarDTO $produto): void
     {
-        $this->db->query(
-            "UPDATE produtos 
-         SET nome = :nome, preco = :preco, descricao = :descricao, referencia = :referencia, inativo = :inativo 
-         WHERE id = :id",
-            [
-                'nome' => $produto->nome,
-                'preco' => $produto->preco,
-                'descricao' => $produto->descricao,
-                'referencia' => $produto->referencia,
-                'inativo' => $produto->inativo,
-                'id' => $produto->id,
-            ]
+        $campos = [];
+        $params = ['id' => $produto->id];
+
+        if ($produto->nome !== null) {
+            $campos[] = 'nome = :nome';
+            $params['nome'] = trim($produto->nome);
+        }
+
+        if ($produto->categoria !== null) {
+            $campos[] = 'categoria = :categoria';
+            $params['categoria'] = $produto->categoria->value;
+        }
+
+        if ($produto->preco !== null) {
+            $campos[] = 'preco = :preco';
+            $params['preco'] = $produto->preco;
+        }
+
+        if ($produto->descricao !== null) {
+            $campos[] = 'descricao = :descricao';
+            $params['descricao'] = trim($produto->descricao);
+        }
+
+        if ($produto->referencia !== null) {
+            $campos[] = 'referencia = :referencia';
+            $params['referencia'] = trim($produto->referencia);
+        }
+
+        if ($produto->inativo !== null) {
+            $campos[] = 'inativo = :inativo';
+            $params['inativo'] = (int) $produto->inativo;
+        }
+
+        if (empty($campos)) {
+            throw new \InvalidArgumentException('Nenhum campo foi informado para alteração.');
+        }
+
+        $sql = sprintf(
+            'UPDATE produtos SET %s WHERE id = :id',
+            implode(', ', $campos)
         );
+
+        $this->db->query($sql, $params);
     }
 
     public function deletar(ProdutoDeleteDTO $ids): void

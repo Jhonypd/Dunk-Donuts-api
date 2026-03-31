@@ -33,6 +33,11 @@ return [
                     $container->get(Service\ProdutoService::class)
                 );
             },
+            Controller\PedidoController::class => function ($container) {
+                return new Controller\PedidoController(
+                    $container->get(Service\PedidoService::class)
+                );
+            },
         ],
     ],
     'service_manager' => [
@@ -50,8 +55,18 @@ return [
                     $container->get(Repository\ProdutoRepository::class)
                 );
             },
+            Repository\PedidoRepository::class => function ($container) {
+                return new Repository\PedidoRepository(
+                    $container->get(Adapter::class)
+                );
+            },
+            Service\PedidoService::class => function ($container) {
+                return new Service\PedidoService(
+                    $container->get(Repository\PedidoRepository::class),
+                    $container->get(Repository\ProdutoRepository::class)
+                );
+            },
         ],
     ],
-    'view_manager' => [
-    ],
+    'view_manager' => [],
 ];

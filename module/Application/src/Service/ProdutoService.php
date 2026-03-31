@@ -79,9 +79,10 @@ class ProdutoService
         }
 
         $inativo = (bool) $dados->inativo;
-        $valorCategoria = trim((string) ($dados->categoria ?? ''));
-
-        $categoria = CategoriaProdutos::tryFrom($valorCategoria)
+        $categoriaEntrada = $dados->categoria;
+        $categoria = $categoriaEntrada instanceof CategoriaProdutos
+            ? $categoriaEntrada
+            : CategoriaProdutos::tryFrom((int) ($categoriaEntrada ?? CategoriaProdutos::NORMAIS->value))
             ?? CategoriaProdutos::NORMAIS;
 
 
@@ -99,63 +100,141 @@ class ProdutoService
 
     public function alterar(ProdutoAlterarDTO $dados): void
     {
-        $nome = trim($dados->nome);
+        $id = (int) $dados->id;
 
-        if ($nome === '') {
-            throw new \InvalidArgumentException('Nome do produto é obrigatório.');
+        if ($id <= 0) {
+            throw new \InvalidArgumentException('ID do produto é obrigatório.');
         }
 
-        $referencia = trim($dados->referencia);
+        $produtoAtual = $this->repository->buscarPorId($id);
 
-        $produtoExistente = $this->buscaNomeReferenciaExistente($nome, $referencia, true);
-
-        if ($produtoExistente && $produtoExistente['id'] !== $dados->id) {
-            throw new \InvalidArgumentException('Já existe um produto com o nome "' . $nome . '" e/ou referência "' . $referencia . '".');
+        if (!$produtoAtual) {
+            throw new \InvalidArgumentException('Produto não encontrado.');
         }
 
-        $tamanhoNome = $this->getTextLength($nome);
+        // =========================
+        // NOME
+        // =========================
+        $nome = null;
+        if ($dados->nome !== null) {
+            $nome = trim($dados->nome);
+
+            if ($nome === '') {
+                throw new \InvalidArgumentException('Nome do produto não pode ser vazio.');
+            }
+
+            $tamanhoNome = $this->getTextLength($nome);
+            if (
+                $tamanhoNome < self::NOME_MINIMO_CARACTERES ||
+                $tamanhoNome > self::NOME_MAXIMO_CARACTERES
+            ) {
+                throw new \InvalidArgumentException('O nome precisa ter entre 5 e 100 caracteres.');
+            }
+        }
+
+        // =========================
+        // REFERÊNCIA
+        // =========================
+        $referencia = null;
+        if ($dados->referencia !== null) {
+            $referencia = trim($dados->referencia);
+
+            if ($referencia === '') {
+                throw new \InvalidArgumentException('Referência do produto não pode ser vazia.');
+            }
+
+            $tamanhoReferencia = $this->getTextLength($referencia);
+            if (
+                $tamanhoReferencia < self::REFERENCIA_MINIMO_CARACTERES ||
+                $tamanhoReferencia > self::REFERENCIA_MAXIMO_CARACTERES
+            ) {
+                throw new \InvalidArgumentException('A referência precisa ter entre 3 e 30 caracteres.');
+            }
+        }
+
+        // =========================
+        // PREÇO
+        // =========================
+        $preco = null;
+        if ($dados->preco !== null) {
+            $preco = (float) $dados->preco;
+
+            if ($preco <= 0) {
+                throw new \InvalidArgumentException('Preço do produto deve ser maior que zero.');
+            }
+        }
+
+        // =========================
+        // INATIVO
+        // =========================
+        $inativo = null;
+        if ($dados->inativo !== null) {
+            $inativo = (bool) $dados->inativo;
+        }
+
+        // =========================
+        // CATEGORIA
+        // =========================
+        $categoria = null;
+        if ($dados->categoria !== null) {
+            $categoriaEntrada = $dados->categoria;
+
+            $categoria = $categoriaEntrada instanceof CategoriaProdutos
+                ? $categoriaEntrada
+                : CategoriaProdutos::tryFrom((int) $categoriaEntrada);
+
+            if (!$categoria) {
+                throw new \InvalidArgumentException('Categoria inválida.');
+            }
+        }
+
+        // =========================
+        // DESCRIÇÃO
+        // =========================
+        $descricao = null;
+        if ($dados->descricao !== null) {
+            $descricao = trim($dados->descricao);
+
+            if ($descricao === '') {
+                throw new \InvalidArgumentException('Descrição não pode ser vazia.');
+            }
+        }
+
+        // =========================
+        // DUPLICIDADE
+        // Só valida se nome ou referência vieram
+        // =========================
+        if ($nome !== null || $referencia !== null) {
+            $nomeFinal = $nome ?? $produtoAtual['nome'];
+            $referenciaFinal = $referencia ?? $produtoAtual['referencia'];
+
+            $produtoExistente = $this->buscaNomeReferenciaExistente($nomeFinal, $referenciaFinal, true);
+
+            if ($produtoExistente && (int) $produtoExistente['id'] !== $id) {
+                throw new \InvalidArgumentException(
+                    'Já existe um produto com o nome "' . $nomeFinal . '" e/ou referência "' . $referenciaFinal . '".'
+                );
+            }
+        }
+
+        // Garante que pelo menos 1 campo foi enviado
         if (
-            $tamanhoNome < self::NOME_MINIMO_CARACTERES
-            || $tamanhoNome > self::NOME_MAXIMO_CARACTERES
+            $nome === null &&
+            $referencia === null &&
+            $preco === null &&
+            $categoria === null &&
+            $descricao === null &&
+            $inativo === null
         ) {
-            throw new \InvalidArgumentException('O nome precisa ter entre 5 e 100 caracteres.');
+            throw new \InvalidArgumentException('Nenhum campo válido foi informado para alteração.');
         }
-
-        $referencia = trim($dados->referencia);
-        if ($referencia === '') {
-            throw new \InvalidArgumentException('Referência do produto é obrigatória.');
-        }
-
-        $tamanhoReferencia = $this->getTextLength($referencia);
-        if (
-            $tamanhoReferencia < self::REFERENCIA_MINIMO_CARACTERES
-            || $tamanhoReferencia > self::REFERENCIA_MAXIMO_CARACTERES
-        ) {
-            throw new \InvalidArgumentException('A referência precisa ter entre 3 e 30 caracteres.');
-        }
-
-        $preco = $dados->preco;
-        if ($preco === 0.0) {
-            throw new \InvalidArgumentException('Preço do produto é obrigatório.');
-        }
-        if ($preco <= 0) {
-            throw new \InvalidArgumentException('Preço do produto deve ser maior que zero.');
-        }
-
-        $inativo = (bool) $dados->inativo;
-
-        $valorCategoria = trim((string) ($dados->categoria ?? ''));
-
-        $categoria = CategoriaProdutos::tryFrom($valorCategoria)
-            ?? CategoriaProdutos::NORMAIS;
-
 
         $produto = new ProdutoAlterarDTO(
-            id: $dados->id,
+            id: $id,
             nome: $nome,
             preco: $preco,
             categoria: $categoria,
-            descricao: $dados->descricao,
+            descricao: $descricao,
             referencia: $referencia,
             inativo: $inativo,
         );

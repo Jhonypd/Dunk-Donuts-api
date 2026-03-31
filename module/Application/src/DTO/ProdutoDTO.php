@@ -23,7 +23,7 @@ final class ProdutoDTO
             nome: (string) ($data['nome'] ?? ''),
             preco: (float) ($data['preco'] ?? 0),
             descricao: isset($data['descricao']) ? (string) $data['descricao'] : null,
-            categoria: CategoriaProdutos::tryFrom(trim((string) ($data['categoria'] ?? ''))) ?? CategoriaProdutos::NORMAIS,
+            categoria: CategoriaProdutos::tryFrom(((int) ($data['categoria'] ?? ''))) ?? CategoriaProdutos::NORMAIS,
             referencia: (string) ($data['referencia'] ?? ''),
             inativo: (bool) ($data['inativo'] ?? false),
         );
